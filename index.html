@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebRTC Video Chat</title>
+</head>
+
+<body>
+  <h2> Start your Webcam</h2>
+  <div class="videos">
+    <span>
+      <h3>Local</h3>
+      <video id="webcamVideo" autoplay playsinline></video>
+    </span>
+    <span>
+      <h3>Remote</h3>
+      <video id="remoteVideo" autoplay playsinline></video>
+    </span>
+  </div>
+
+  <button id="webcamButton">Start Webcam</button>
+  <h2>Make a Call</h2>
+  <button id="callButton" disabled>Call</button>
+
+  <h2>Join a Call</h2>
+
+  <input id="callInput" placeholder="Enter your ID">
+  <button id="answerButton" disabled>Answer</button>
+
+  <button id="hangupButton" disabled>Hangup</button>
+
+  <script type="module" src="src/main.js"></script>
+
+</body>
+
+</html>
