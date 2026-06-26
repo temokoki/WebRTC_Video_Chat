@@ -3,35 +3,72 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WebRTC Video Chat</title>
-  <script type="module" crossorigin src="./assets/index-BKlaeINA.js"></script>
+  <meta name="description" content="Peer-to-peer video chat powered by WebRTC and Firebase signaling." />
+  <script type="module" crossorigin src="/assets/index-DmaGSFqF.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BEYzdFqg.css">
 </head>
 
 <body>
-  <h2> Start your Webcam</h2>
-  <div class="videos">
-    <span>
-      <h3>Local</h3>
-      <video id="webcamVideo" autoplay playsinline></video>
-    </span>
-    <span>
-      <h3>Remote</h3>
-      <video id="remoteVideo" autoplay playsinline></video>
-    </span>
+  <div class="container">
+    <header>
+      <h1>WebRTC Video Chat</h1>
+      <p>P2P video communications powered by Firebase</p>
+      <div id="connectionStatus" class="connection-badge" data-status="disconnected">
+        <span class="connection-dot"></span>
+        <span id="connectionText">Disconnected</span>
+      </div>
+    </header>
+
+    <main class="video-grid">
+      <!-- Local Webcam Stream -->
+      <div class="video-container">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <div class="video-overlay">
+          <span class="video-label">Local Camera (You)</span>
+          <span id="localStatus" class="stream-status">Inactive</span>
+        </div>
+        <!-- One-time camera permission overlay — hidden after access granted -->
+        <div class="camera-enable-overlay" id="cameraEnableOverlay">
+          <button id="webcamButton" class="camera-enable-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+              aria-hidden="true">
+              <path d="M15 10l4.553-2.276A1 1 0 0 1 21 8.67v6.66a1 1 0 0 1-1.447.894L15 14" />
+              <rect x="2" y="6" width="13" height="12" rx="2" />
+            </svg>
+            Enable Camera
+          </button>
+        </div>
+      </div>
+
+      <!-- Remote Stream -->
+      <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="video-overlay">
+          <span class="video-label">Remote Peer</span>
+          <span id="remoteStatus" class="stream-status">Offline</span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Single Control Bar -->
+    <div class="control-bar">
+      <button id="callButton" class="btn btn-secondary" disabled>Generate Call ID</button>
+
+      <div class="input-row">
+        <input id="callInput" type="text" placeholder="Enter Call ID to join" autocomplete="off" disabled />
+        <button id="copyButton" class="btn btn-secondary btn-icon" title="Copy Call ID" disabled>📋</button>
+      </div>
+
+      <button id="answerButton" class="btn btn-primary" disabled>Answer Call</button>
+      <button id="hangupButton" class="btn btn-destructive" style="display:none">End Call</button>
+    </div>
   </div>
 
-  <button id="webcamButton">Start Webcam</button>
-  <h2>Make a Call</h2>
-  <button id="callButton" disabled>Call</button>
-
-  <h2>Join a Call</h2>
-
-  <input id="callInput" placeholder="Enter your ID">
-  <button id="answerButton" disabled>Answer</button>
-
-  <button id="hangupButton" disabled>Hangup</button>
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
 
 </body>
 
