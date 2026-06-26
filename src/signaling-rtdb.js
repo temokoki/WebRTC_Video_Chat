@@ -21,7 +21,8 @@ import {
   addRemoteIceCandidate,
   processQueuedIceCandidates,
   clearSubscriptions,
-  handleHangup
+  handleHangup,
+  enterCallMode
 } from "./webrtc-core.js";
 
 // =============================================================================
@@ -47,11 +48,11 @@ callbacks.hangupCleanup = async (callId, userID) => {
 // =============================================================================
 DOM.callButton.onclick = async () => {
   try {
-    DOM.callButton.disabled   = true;
+    DOM.callButton.disabled = true;
     DOM.answerButton.disabled = true;
     clearSubscriptions();
 
-    const callRef            = ref(rtdb, `calls/${state.userID}`);
+    const callRef = ref(rtdb, `calls/${state.userID}`);
     const offerCandidatesRef = ref(rtdb, `calls/${state.userID}/offerCandidates`);
     const answerCandidatesRef = ref(rtdb, `calls/${state.userID}/answerCandidates`);
 
@@ -83,7 +84,8 @@ DOM.callButton.onclick = async () => {
       status: "pending",
       offer: { type: offerDescription.type, sdp: offerDescription.sdp }
     });
-    showToast("Room created. Ready for incoming connection.", "success");
+    showToast("Call started. Ready for incoming connection.", "success");
+    enterCallMode();
 
     // Guard flag: ensure remote description is applied exactly once
     let remoteDescriptionApplied = false;
@@ -121,7 +123,7 @@ DOM.callButton.onclick = async () => {
     console.error("Calling error:", error);
     showToast(`Call creation failed: ${error.message}`, "error");
     updateConnectionState("disconnected");
-    DOM.callButton.disabled   = false;
+    DOM.callButton.disabled = false;
     DOM.answerButton.disabled = false;
   }
 };
@@ -137,12 +139,12 @@ DOM.answerButton.onclick = async () => {
   }
 
   try {
-    DOM.callButton.disabled   = true;
+    DOM.callButton.disabled = true;
     DOM.answerButton.disabled = true;
     clearSubscriptions();
 
-    const callRef             = ref(rtdb, `calls/${callId}`);
-    const offerCandidatesRef  = ref(rtdb, `calls/${callId}/offerCandidates`);
+    const callRef = ref(rtdb, `calls/${callId}`);
+    const offerCandidatesRef = ref(rtdb, `calls/${callId}/offerCandidates`);
     const answerCandidatesRef = ref(rtdb, `calls/${callId}/answerCandidates`);
 
     updateConnectionState("connecting");
@@ -154,7 +156,7 @@ DOM.answerButton.onclick = async () => {
     if (!callData || callData.status === "ended") {
       showToast("Session not found or already closed.", "error");
       updateConnectionState("disconnected");
-      DOM.callButton.disabled   = false;
+      DOM.callButton.disabled = false;
       DOM.answerButton.disabled = false;
       return;
     }
@@ -183,6 +185,7 @@ DOM.answerButton.onclick = async () => {
       answer: { type: answerDescription.type, sdp: answerDescription.sdp }
     });
     showToast("Joined session. Connecting...", "success");
+    enterCallMode();
 
     // Listen for caller's ICE candidates
     const unsubCandidates = onChildAdded(offerCandidatesRef, (snapshot) => {
@@ -203,7 +206,7 @@ DOM.answerButton.onclick = async () => {
     console.error("Joining error:", error);
     showToast(`Failed to join call: ${error.message}`, "error");
     updateConnectionState("disconnected");
-    DOM.callButton.disabled   = false;
+    DOM.callButton.disabled = false;
     DOM.answerButton.disabled = false;
   }
 };

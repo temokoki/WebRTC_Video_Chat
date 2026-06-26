@@ -36,18 +36,19 @@ export const callbacks = {
 
 // --- DOM ELEMENTS ---
 export const DOM = {
-  webcamButton:     document.getElementById("webcamButton"),
-  webcamVideo:      document.getElementById("webcamVideo"),
-  callButton:       document.getElementById("callButton"),
-  callInput:        document.getElementById("callInput"),
-  answerButton:     document.getElementById("answerButton"),
-  remoteVideo:      document.getElementById("remoteVideo"),
-  hangupButton:     document.getElementById("hangupButton"),
-  copyButton:       document.getElementById("copyButton"),
+  webcamButton: document.getElementById("webcamButton"),
+  webcamVideo: document.getElementById("webcamVideo"),
+  callButton: document.getElementById("callButton"),
+  callInput: document.getElementById("callInput"),
+  answerButton: document.getElementById("answerButton"),
+  remoteVideo: document.getElementById("remoteVideo"),
+  hangupButton: document.getElementById("hangupButton"),
+  copyButton: document.getElementById("copyButton"),
+  cameraEnableOverlay: document.getElementById("cameraEnableOverlay"),
   connectionStatus: document.getElementById("connectionStatus"),
-  connectionText:   document.getElementById("connectionText"),
-  localStatus:      document.getElementById("localStatus"),
-  remoteStatus:     document.getElementById("remoteStatus")
+  connectionText: document.getElementById("connectionText"),
+  localStatus: document.getElementById("localStatus"),
+  remoteStatus: document.getElementById("remoteStatus")
 };
 
 // =============================================================================
@@ -68,7 +69,7 @@ export function showToast(message, type = "info") {
   container.appendChild(toast);
 
   const dismiss = () => {
-    toast.style.animation = "fade-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards";
+    toast.style.animation = "fade-out 0.5s cubic-bezier(0.16, 1, 0.5, 1) forwards";
     toast.addEventListener("animationend", () => toast.remove());
   };
 
@@ -81,21 +82,36 @@ export function updateConnectionState(connectionState) {
   DOM.connectionStatus.setAttribute("data-status", connectionState.toLowerCase());
 
   const labels = {
-    connecting:   "Connecting...",
-    connected:    "Connected",
-    failed:       "Failed/Timeout",
-    closed:       "Call Closed"
+    connecting: "Connecting...",
+    connected: "Connected",
+    failed: "Failed/Timeout",
+    closed: "Call Closed"
   };
   DOM.connectionText.textContent = labels[connectionState] ?? "Disconnected";
 }
 
 export function resetUIAfterHangup() {
-  DOM.webcamButton.disabled = false;
-  DOM.callButton.disabled   = true;
-  DOM.answerButton.disabled = true;
-  DOM.hangupButton.disabled = true;
-  DOM.copyButton.disabled   = true;
-  DOM.callInput.value       = "";
+  // Camera stays on — only reset call controls
+  DOM.callButton.disabled = false;
+  DOM.callInput.disabled = false;
+  DOM.callInput.value = "";
+  DOM.copyButton.disabled = false;
+  // Swap: hide End Call → restore Answer Call
+  DOM.hangupButton.style.display = "none";
+  DOM.answerButton.style.display = "";
+  DOM.answerButton.disabled = false;
+}
+
+/** Called by the signaling adapter once a call session begins
+ *  (offer written or answer sent). Swaps Answer → End Call in the UI. */
+export function enterCallMode() {
+  DOM.callButton.disabled = true;
+  DOM.callInput.disabled = true;
+  // Swap: hide Answer Call → show End Call (always re-enable in case it was
+  // disabled by a previous handleHangup() call)
+  DOM.answerButton.style.display = "none";
+  DOM.hangupButton.style.display = "";
+  DOM.hangupButton.disabled = false;
 }
 
 // =============================================================================
@@ -230,7 +246,13 @@ export async function handleHangup(notifyPeer = true) {
     }
   }
 
-  stopAllMedia();
+  // Stop REMOTE stream only — local camera stays active
+  if (state.remoteStream) {
+    state.remoteStream.getTracks().forEach((t) => t.stop());
+    state.remoteStream = null;
+    DOM.remoteVideo.srcObject = null;
+    DOM.remoteStatus.textContent = "Offline";
+  }
 
   if (state.pc) {
     state.pc.close();
@@ -238,7 +260,7 @@ export async function handleHangup(notifyPeer = true) {
   }
 
   updateConnectionState("disconnected");
-  showToast("Session disconnected.", "success");
+  showToast("Session ended.", "success");
   resetUIAfterHangup();
 }
 
@@ -251,17 +273,20 @@ DOM.webcamButton.onclick = async () => {
     DOM.webcamButton.disabled = true;
     state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
+    // Hide the overlay permanently — camera is now live
+    DOM.cameraEnableOverlay.classList.add("hidden");
     DOM.webcamVideo.srcObject = state.localStream;
     DOM.localStatus.textContent = "Active";
-    showToast("Media streams started successfully.", "success");
+    showToast("Camera enabled.", "success");
 
-    DOM.callButton.disabled   = false;
+    // Unlock call controls
+    DOM.callButton.disabled = false;
+    DOM.callInput.disabled = false;
     DOM.answerButton.disabled = false;
-    DOM.hangupButton.disabled = false;
-    DOM.copyButton.disabled   = false;
+    DOM.copyButton.disabled = false;
   } catch (error) {
     console.error("Webcam access error:", error);
-    showToast("Failed to acquire video/audio streams.", "error");
+    showToast("Failed to enable camera. Please allow access and try again.", "error");
     DOM.webcamButton.disabled = false;
   }
 };
