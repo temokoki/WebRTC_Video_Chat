@@ -3,37 +3,73 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WebRTC Video Chat</title>
+  <link rel="stylesheet" href="src/style.css" />
 </head>
 
 <body>
-  <h2> Start your Webcam</h2>
-  <div class="videos">
-    <span>
-      <h3>Local</h3>
-      <video id="webcamVideo" autoplay playsinline></video>
-    </span>
-    <span>
-      <h3>Remote</h3>
-      <video id="remoteVideo" autoplay playsinline></video>
-    </span>
+  <div class="container">
+    <header>
+      <h1>WebRTC Video Chat</h1>
+      <p>P2P video communications powered by Firebase</p>
+      <div id="connectionStatus" class="connection-badge" data-status="disconnected">
+        <span class="connection-dot"></span>
+        <span id="connectionText">Disconnected</span>
+      </div>
+    </header>
+
+    <main class="video-grid">
+      <!-- Local Webcam Stream -->
+      <div class="video-container">
+        <video id="webcamVideo" autoplay playsinline muted></video>
+        <div class="video-overlay">
+          <span class="video-label">Local Camera (You)</span>
+          <span id="localStatus" class="stream-status">Inactive</span>
+        </div>
+      </div>
+
+      <!-- Remote Stream -->
+      <div class="video-container">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <div class="video-overlay">
+          <span class="video-label">Remote Peer</span>
+          <span id="remoteStatus" class="stream-status">Offline</span>
+        </div>
+      </div>
+    </main>
+
+    <section class="controls-card">
+      <div class="controls-grid">
+        <!-- Local Media Setup & Hangup -->
+        <div class="control-section">
+          <h2>📷 1. Media Setup</h2>
+          <div class="action-row">
+            <button id="webcamButton" class="btn btn-primary" disabled>Start Webcam</button>
+            <button id="hangupButton" class="btn btn-destructive" disabled>Hang Up</button>
+          </div>
+        </div>
+
+        <!-- Calling & Joining -->
+        <div class="control-section">
+          <h2>🔗 2. Connection Controls</h2>
+          <div class="action-row" style="margin-bottom: 0.5rem;">
+            <button id="callButton" class="btn btn-secondary" disabled>Generate Call ID</button>
+          </div>
+          <div class="input-group">
+            <input id="callInput" type="text" placeholder="Enter Call ID to answer" autocomplete="off" />
+            <button id="copyButton" class="btn btn-secondary btn-icon" title="Copy Call ID" disabled>📋</button>
+            <button id="answerButton" class="btn btn-primary" disabled>Answer Call</button>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <button id="webcamButton">Start Webcam</button>
-  <h2>Make a Call</h2>
-  <button id="callButton" disabled>Call</button>
+  <!-- Toast Notification System -->
+  <div id="toast-container"></div>
 
-  <h2>Join a Call</h2>
-
-  <input id="callInput" placeholder="Enter your ID">
-  <button id="answerButton" disabled>Answer</button>
-
-  <button id="hangupButton" disabled>Hangup</button>
-
-  <script type="module" src="src/main_firestore.js"></script>
-
+  <script type="module" src="src/main_rtdb.js"></script>
 </body>
 
 </html>
