@@ -162,6 +162,11 @@ video {
   /* Mirror effect for natural video */
 }
 
+/* Disable mirror for remote video */
+#remoteVideo {
+  transform: scaleX(1);
+}
+
 /* Disable mirror when showing screen share in local preview */
 .no-mirror {
   transform: scaleX(1) !important;
@@ -169,15 +174,16 @@ video {
 
 .video-overlay {
   position: absolute;
-  bottom: 0;
+  top: 0;
   left: 0;
   right: 0;
-  padding: 1rem;
-  background: linear-gradient(to top, rgba(3, 7, 18, 0.8), transparent);
+  padding: 12px;
+  background: linear-gradient(to bottom, rgba(3, 7, 18, 0.8), transparent);
   display: flex;
   justify-content: space-between;
   align-items: center;
   pointer-events: none;
+  z-index: 4;
 }
 
 .video-label {
@@ -258,8 +264,9 @@ video {
    ============================================================ */
 .screen-share-btn {
   position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
+  bottom: 0.65rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 5;
   display: inline-flex;
   align-items: center;
@@ -284,12 +291,12 @@ video {
 .screen-share-btn:hover {
   background: rgba(30, 41, 59, 0.9);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: scale(1.05);
+  transform: translateX(-50%) scale(1.05);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .screen-share-btn:active {
-  transform: scale(0.95);
+  transform: translateX(-50%) scale(0.95);
 }
 
 /* Active / "stop sharing" state */
@@ -304,7 +311,7 @@ video {
 .screen-share-btn.sharing:hover {
   background: hsla(var(--destructive) / 0.4);
   border-color: hsla(var(--destructive) / 0.7);
-  transform: scale(1.05);
+  transform: translateX(-50%) scale(1.05);
 }
 
 @keyframes share-pulse {

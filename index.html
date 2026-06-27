@@ -21,11 +21,11 @@
     </header>
 
     <main class="video-grid">
-      <!-- Local Webcam Stream -->
+      <!-- Local Stream -->
       <div class="video-container">
-        <video id="webcamVideo" autoplay playsinline muted></video>
+        <video id="localVideo" autoplay playsinline muted></video>
         <div class="video-overlay">
-          <span class="video-label">Local Camera</span>
+          <span class="video-label">Local Stream</span>
           <span id="localStatus" class="stream-status">Inactive</span>
         </div>
         <!-- One-time camera permission overlay — hidden after access granted -->
@@ -54,7 +54,7 @@
 
       <!-- Remote Stream -->
       <div class="video-container">
-        <video autoplay playsinline></video>
+        <video id="remoteVideo" autoplay playsinline></video>
         <div class="video-overlay">
           <span class="video-label">Remote Peer</span>
           <span id="remoteStatus" class="stream-status">Offline</span>

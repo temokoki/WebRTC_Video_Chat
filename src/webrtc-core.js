@@ -36,7 +36,7 @@ export const callbacks = {
 // --- DOM ELEMENTS ---
 export const DOM = {
   webcamButton: document.getElementById("webcamButton"),
-  webcamVideo: document.getElementById("webcamVideo"),
+  localVideo: document.getElementById("localVideo"),
   screenShareButton: document.getElementById("screenShareButton"),
   callButton: document.getElementById("callButton"),
   callInput: document.getElementById("callInput"),
@@ -149,6 +149,7 @@ export function setupPeerConnection() {
     } else if (s === "failed" || s === "disconnected") {
       updateConnectionState("disconnected");
       DOM.remoteStatus.textContent = "Offline";
+      DOM.remoteVideo.controls = false;
       showToast("WebRTC connection lost.", "error");
     }
   };
@@ -164,13 +165,21 @@ export function setupPeerConnection() {
         state.remoteStream.addTrack(track);
       });
       DOM.remoteVideo.srcObject = state.remoteStream;
+      DOM.remoteVideo.controls = true;
       DOM.remoteStatus.textContent = "Active";
     }
   };
 
   if (state.localStream) {
     state.localStream.getTracks().forEach((track) => {
-      state.pc.addTrack(track, state.localStream);
+      let trackToSend = track;
+      if (track.kind === "video" && state.screenShareStream) {
+        const screenVideoTrack = state.screenShareStream.getVideoTracks()[0];
+        if (screenVideoTrack) {
+          trackToSend = screenVideoTrack;
+        }
+      }
+      state.pc.addTrack(trackToSend, state.localStream);
     });
   }
 }
@@ -211,13 +220,14 @@ export function stopAllMedia() {
   if (state.localStream) {
     state.localStream.getTracks().forEach((t) => t.stop());
     state.localStream = null;
-    DOM.webcamVideo.srcObject = null;
+    DOM.localVideo.srcObject = null;
     DOM.localStatus.textContent = "Inactive";
   }
   if (state.remoteStream) {
     state.remoteStream.getTracks().forEach((t) => t.stop());
     state.remoteStream = null;
     DOM.remoteVideo.srcObject = null;
+    DOM.remoteVideo.controls = false;
     DOM.remoteStatus.textContent = "Offline";
   }
 }
@@ -246,6 +256,7 @@ export async function handleHangup(notifyPeer = true) {
     state.remoteStream.getTracks().forEach((t) => t.stop());
     state.remoteStream = null;
     DOM.remoteVideo.srcObject = null;
+    DOM.remoteVideo.controls = false;
     DOM.remoteStatus.textContent = "Offline";
   }
 
@@ -270,7 +281,7 @@ DOM.webcamButton.onclick = async () => {
 
     // Hide the overlay permanently — camera is now live
     DOM.cameraEnableOverlay.style.display = "none";
-    DOM.webcamVideo.srcObject = state.localStream;
+    DOM.localVideo.srcObject = state.localStream;
     DOM.localStatus.textContent = "Active";
     showToast("Camera enabled.", "success");
 
@@ -307,8 +318,8 @@ export async function stopScreenShare() {
   state.screenShareStream = null;
 
   // Restore webcam video in local preview
-  DOM.webcamVideo.srcObject = state.localStream;
-  DOM.webcamVideo.classList.remove("no-mirror"); // restore webcam mirror effect
+  DOM.localVideo.srcObject = state.localStream;
+  DOM.localVideo.classList.remove("no-mirror"); // restore webcam mirror effect
 
   // Send webcam video track back to peer
   const webcamVideoTrack = state.localStream.getVideoTracks()[0];
@@ -354,8 +365,8 @@ DOM.screenShareButton.onclick = async () => {
     const screenVideoTrack = displayStream.getVideoTracks()[0];
 
     // Show screen in local preview (no mirror — screen content should not be flipped)
-    DOM.webcamVideo.srcObject = displayStream;
-    DOM.webcamVideo.classList.add("no-mirror");
+    DOM.localVideo.srcObject = displayStream;
+    DOM.localVideo.classList.add("no-mirror");
 
     // Send screen video to the remote peer
     replaceVideoTrack(screenVideoTrack);
