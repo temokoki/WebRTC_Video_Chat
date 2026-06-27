@@ -85,16 +85,20 @@ DOM.callButton.onclick = async () => {
     });
     showToast("Call started. Ready for incoming connection.", "success");
     enterCallMode();
+    // needed for RTDB as 'onValue' is fired multiple times on every node change
+    let remoteDescriptionSet = false;
 
     // Listen for the remote answer
     const unsubCall = onValue(callRef, async (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
-      if (data.answer && state.pc.signalingState === "have-local-offer") {
+      if (!remoteDescriptionSet && data.answer && state.pc.signalingState === "have-local-offer") {
+        remoteDescriptionSet = true; // set BEFORE await — blocks any concurrent onValue re-entry
         try {
           await state.pc.setRemoteDescription(data.answer);
           await processQueuedIceCandidates();
         } catch (e) {
+          remoteDescriptionSet = false; // allow retry on genuine failure
           console.error("Error setting remote description:", e);
         }
       }

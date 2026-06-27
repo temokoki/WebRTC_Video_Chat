@@ -162,9 +162,9 @@ video {
   /* Mirror effect for natural video */
 }
 
-/* For remote video, we may not want mirror effect depending on taste, but usually mirroring is only for local webcam. Let's unmirror remote video if needed. */
-#remoteVideo {
-  transform: scaleX(1);
+/* Disable mirror when showing screen share in local preview */
+.no-mirror {
+  transform: scaleX(1) !important;
 }
 
 .video-overlay {
@@ -251,6 +251,72 @@ video {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* ============================================================
+   SCREEN SHARE BUTTON (overlay inside local video container)
+   ============================================================ */
+.screen-share-btn {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: hsl(var(--text-primary));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 50px;
+  font-family: var(--font-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  transition: var(--transition-all);
+  white-space: nowrap;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.screen-share-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.screen-share-btn:active {
+  transform: scale(0.95);
+}
+
+/* Active / "stop sharing" state */
+.screen-share-btn.sharing {
+  background: hsla(var(--destructive) / 0.25);
+  border-color: hsla(var(--destructive) / 0.5);
+  color: hsl(0, 90%, 75%);
+  box-shadow: 0 0 14px hsla(var(--destructive) / 0.35);
+  animation: share-pulse 2.5s ease-in-out infinite;
+}
+
+.screen-share-btn.sharing:hover {
+  background: hsla(var(--destructive) / 0.4);
+  border-color: hsla(var(--destructive) / 0.7);
+  transform: scale(1.05);
+}
+
+@keyframes share-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px hsla(var(--destructive) / 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 22px hsla(var(--destructive) / 0.6);
+  }
 }
 
 /* ============================================================

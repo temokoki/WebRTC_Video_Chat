@@ -19,6 +19,7 @@ export const state = {
   userID: "",
   localStream: null,
   remoteStream: null,
+  screenShareStream: null,
   pc: null,
   unsubscribes: [],
   iceCandidatesQueue: []
@@ -36,6 +37,7 @@ export const callbacks = {
 export const DOM = {
   webcamButton: document.getElementById("webcamButton"),
   webcamVideo: document.getElementById("webcamVideo"),
+  screenShareButton: document.getElementById("screenShareButton"),
   callButton: document.getElementById("callButton"),
   callInput: document.getElementById("callInput"),
   answerButton: document.getElementById("answerButton"),
@@ -272,6 +274,9 @@ DOM.webcamButton.onclick = async () => {
     DOM.localStatus.textContent = "Active";
     showToast("Camera enabled.", "success");
 
+    // Show screen share button now that camera is active
+    DOM.screenShareButton.style.display = "";
+
     // Unlock call controls
     DOM.callButton.disabled = false;
     DOM.callInput.disabled = false;
@@ -281,6 +286,105 @@ DOM.webcamButton.onclick = async () => {
     console.error("Webcam access error:", error);
     showToast("Failed to enable camera. Please allow access and try again.", "error");
     DOM.webcamButton.disabled = false;
+  }
+};
+
+// --- SCREEN SHARE HELPERS ---
+
+// Replace the video track sent over the peer connection with `newTrack`
+function replaceVideoTrack(newTrack) {
+  if (!state.pc) return;
+  const sender = state.pc.getSenders().find((s) => s.track && s.track.kind === "video");
+  if (sender) sender.replaceTrack(newTrack);
+}
+
+// Stop screen sharing and restore the webcam video track
+export async function stopScreenShare() {
+  if (!state.screenShareStream) return;
+
+  // Stop all screen capture tracks
+  state.screenShareStream.getTracks().forEach((t) => t.stop());
+  state.screenShareStream = null;
+
+  // Restore webcam video in local preview
+  DOM.webcamVideo.srcObject = state.localStream;
+  DOM.webcamVideo.classList.remove("no-mirror"); // restore webcam mirror effect
+
+  // Send webcam video track back to peer
+  const webcamVideoTrack = state.localStream.getVideoTracks()[0];
+  if (webcamVideoTrack) replaceVideoTrack(webcamVideoTrack);
+
+  // Update button UI
+  const btn = DOM.screenShareButton;
+  btn.classList.remove("sharing");
+  btn.querySelector("span").textContent = "Share Screen";
+  btn.querySelector("svg").innerHTML = `<rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" />`;
+
+  DOM.localStatus.textContent = "Active";
+  showToast("Screen sharing stopped.", "info");
+}
+
+DOM.screenShareButton.onclick = async () => {
+  // If already sharing — stop
+  if (state.screenShareStream) {
+    await stopScreenShare();
+    return;
+  }
+
+  try {
+    // Capture the display; also capture mic audio so voice is mixed in
+    const displayStream = await navigator.mediaDevices.getDisplayMedia({
+      video: { cursor: "always" },
+      audio: false           // display audio (system/tab) captured separately below
+    });
+
+    // Try to get microphone audio to mix with screen share
+    let micAudioTrack = null;
+    try {
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      micAudioTrack = micStream.getAudioTracks()[0];
+    } catch (micErr) {
+      console.warn("Could not capture microphone audio:", micErr);
+    }
+
+    // Build the composite stream shown locally (screen video only — no need to show mic waveform)
+    state.screenShareStream = displayStream;
+    if (micAudioTrack) displayStream.addTrack(micAudioTrack);
+
+    const screenVideoTrack = displayStream.getVideoTracks()[0];
+
+    // Show screen in local preview (no mirror — screen content should not be flipped)
+    DOM.webcamVideo.srcObject = displayStream;
+    DOM.webcamVideo.classList.add("no-mirror");
+
+    // Send screen video to the remote peer
+    replaceVideoTrack(screenVideoTrack);
+
+    // Also replace audio track with mic audio if we captured it
+    if (micAudioTrack && state.pc) {
+      const audioSender = state.pc.getSenders().find((s) => s.track && s.track.kind === "audio");
+      if (audioSender) audioSender.replaceTrack(micAudioTrack);
+    }
+
+    // Auto-stop when the browser's native "Stop sharing" UI is triggered
+    screenVideoTrack.onended = () => stopScreenShare();
+
+    // Update button to "Stop Screen Sharing"
+    const btn = DOM.screenShareButton;
+    btn.classList.add("sharing");
+    btn.querySelector("span").textContent = "Stop Sharing";
+    // Swap icon to an X / stop monitor icon
+    btn.querySelector("svg").innerHTML = `<rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /><line x1="18" y1="6" x2="6" y2="15" /><line x1="6" y1="6" x2="18" y2="15" />`;
+
+    DOM.localStatus.textContent = "Screen Sharing";
+    showToast("Screen sharing started.", "success");
+  } catch (error) {
+    if (error.name === "NotAllowedError") {
+      showToast("Screen share permission denied.", "error");
+    } else {
+      console.error("Screen share error:", error);
+      showToast("Failed to start screen sharing.", "error");
+    }
   }
 };
 

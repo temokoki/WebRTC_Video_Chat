@@ -40,11 +40,21 @@
             Enable Camera
           </button>
         </div>
+
+        <!-- Screen Share toggle button — visible only after camera is enabled -->
+        <button id="screenShareButton" class="screen-share-btn" style="display:none" title="Share Screen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          <span>Share Screen</span>
+        </button>
       </div>
 
       <!-- Remote Stream -->
       <div class="video-container">
-        <video id="remoteVideo" autoplay playsinline></video>
+        <video autoplay playsinline></video>
         <div class="video-overlay">
           <span class="video-label">Remote Peer</span>
           <span id="remoteStatus" class="stream-status">Offline</span>
