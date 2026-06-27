@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WebRTC Video Chat</title>
   <meta name="description" content="Peer-to-peer video chat powered by WebRTC and Firebase signaling." />
-  <script type="module" crossorigin src="./assets/index-DmaGSFqF.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BEYzdFqg.css">
+  <script type="module" crossorigin src="./assets/index-CA558uqu.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Bd_TLNmr.css">
 </head>
 
 <body>
@@ -22,11 +22,11 @@
     </header>
 
     <main class="video-grid">
-      <!-- Local Webcam Stream -->
+      <!-- Local Stream -->
       <div class="video-container">
-        <video id="webcamVideo" autoplay playsinline muted></video>
+        <video id="localVideo" autoplay playsinline muted></video>
         <div class="video-overlay">
-          <span class="video-label">Local Camera (You)</span>
+          <span class="video-label">Local Stream</span>
           <span id="localStatus" class="stream-status">Inactive</span>
         </div>
         <!-- One-time camera permission overlay — hidden after access granted -->
@@ -41,6 +41,16 @@
             Enable Camera
           </button>
         </div>
+
+        <!-- Screen Share toggle button — visible only after camera is enabled -->
+        <button id="screenShareButton" class="screen-share-btn" style="display:none" title="Share Screen">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <path d="M8 21h8M12 17v4" />
+          </svg>
+          <span>Share Screen</span>
+        </button>
       </div>
 
       <!-- Remote Stream -->
@@ -55,7 +65,7 @@
 
     <!-- Single Control Bar -->
     <div class="control-bar">
-      <button id="callButton" class="btn btn-secondary" disabled>Generate Call ID</button>
+      <button id="callButton" class="btn btn-primary" disabled>Start Call</button>
 
       <div class="input-row">
         <input id="callInput" type="text" placeholder="Enter Call ID to join" autocomplete="off" disabled />
