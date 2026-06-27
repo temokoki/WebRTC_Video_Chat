@@ -1,11 +1,10 @@
-import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
-import { auth } from "./firebase-config.js";
-
 // =============================================================================
-// webrtc-core.js
 // Shared WebRTC, media, UI, and auth logic used by both signaling adapters.
 // Signaling-specific code (Firestore / RTDB API calls) lives in the adapters.
 // =============================================================================
+
+import { signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase-config.js";
 
 // --- WEBRTC CONFIGURATION ---
 export const ICE_CONFIG = {
@@ -22,7 +21,6 @@ export const state = {
   remoteStream: null,
   pc: null,
   unsubscribes: [],
-  remoteDescriptionSet: false,
   iceCandidatesQueue: []
 };
 
@@ -102,13 +100,11 @@ export function resetUIAfterHangup() {
   DOM.answerButton.disabled = false;
 }
 
-/** Called by the signaling adapter once a call session begins
- *  (offer written or answer sent). Swaps Answer → End Call in the UI. */
+// Called by the signaling adapter once a call session begins
 export function enterCallMode() {
   DOM.callButton.disabled = true;
   DOM.callInput.disabled = true;
-  // Swap: hide Answer Call → show End Call (always re-enable in case it was
-  // disabled by a previous handleHangup() call)
+  // Swap: hide Answer Call → show End Call
   DOM.answerButton.style.display = "none";
   DOM.hangupButton.style.display = "";
   DOM.hangupButton.disabled = false;
@@ -133,7 +129,6 @@ export function setupPeerConnection() {
   if (state.pc) state.pc.close();
 
   state.pc = new RTCPeerConnection(ICE_CONFIG);
-  state.remoteDescriptionSet = false;
   state.iceCandidatesQueue.length = 0;
   // Fresh stream for each new call so stale tracks don't linger
   state.remoteStream = new MediaStream();
@@ -184,12 +179,11 @@ export function setupPeerConnection() {
 
 export async function addRemoteIceCandidate(candidateData) {
   try {
-    const candidate = new RTCIceCandidate(candidateData);
-    if (!state.remoteDescriptionSet) {
-      state.iceCandidatesQueue.push(candidate);
+    if (!state.pc.remoteDescription) {
+      state.iceCandidatesQueue.push(candidateData);
       console.log("Queued ICE candidate (remote SDP not set yet)");
     } else {
-      await state.pc.addIceCandidate(candidate);
+      await state.pc.addIceCandidate(candidateData);
       console.log("Applied ICE candidate directly");
     }
   } catch (error) {
@@ -199,7 +193,6 @@ export async function addRemoteIceCandidate(candidateData) {
 
 export async function processQueuedIceCandidates() {
   console.log(`Processing ${state.iceCandidatesQueue.length} queued ICE candidates`);
-  state.remoteDescriptionSet = true;
   for (const candidate of state.iceCandidatesQueue) {
     await state.pc.addIceCandidate(candidate).catch((error) => {
       console.error("Error applying queued ICE candidate:", error);
@@ -274,7 +267,7 @@ DOM.webcamButton.onclick = async () => {
     state.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
     // Hide the overlay permanently — camera is now live
-    DOM.cameraEnableOverlay.classList.add("hidden");
+    DOM.cameraEnableOverlay.style.display = "none";
     DOM.webcamVideo.srcObject = state.localStream;
     DOM.localStatus.textContent = "Active";
     showToast("Camera enabled.", "success");

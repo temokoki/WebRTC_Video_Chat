@@ -1,3 +1,8 @@
+// =============================================================================
+// Realtime Database signaling adapter. Handles offer/answer exchange and ICE
+// candidate relay via Firebase RTDB. All shared WebRTC logic lives in webrtc-core.js.
+// =============================================================================
+
 import {
   getDatabase,
   ref,
@@ -24,12 +29,6 @@ import {
   handleHangup,
   enterCallMode
 } from "./webrtc-core.js";
-
-// =============================================================================
-// signaling-rtdb.js
-// Realtime Database signaling adapter. Handles offer/answer exchange and ICE
-// candidate relay via Firebase RTDB. All shared WebRTC logic lives in webrtc-core.js.
-// =============================================================================
 
 const rtdb = getDatabase(app);
 
@@ -87,22 +86,16 @@ DOM.callButton.onclick = async () => {
     showToast("Call started. Ready for incoming connection.", "success");
     enterCallMode();
 
-    // Guard flag: ensure remote description is applied exactly once
-    let remoteDescriptionApplied = false;
-
     // Listen for the remote answer
     const unsubCall = onValue(callRef, async (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
-
-      if (!remoteDescriptionApplied && data.answer && state.pc.signalingState === "have-local-offer") {
-        remoteDescriptionApplied = true;
+      if (data.answer && state.pc.signalingState === "have-local-offer") {
         try {
-          await state.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          await state.pc.setRemoteDescription(data.answer);
           await processQueuedIceCandidates();
         } catch (e) {
           console.error("Error setting remote description:", e);
-          remoteDescriptionApplied = false;
         }
       }
 
@@ -173,8 +166,7 @@ DOM.answerButton.onclick = async () => {
     };
 
     // Apply the caller's offer and create an answer
-    await state.pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
-    await processQueuedIceCandidates();
+    await state.pc.setRemoteDescription(callData.offer);
 
     const answerDescription = await state.pc.createAnswer();
     await state.pc.setLocalDescription(answerDescription);

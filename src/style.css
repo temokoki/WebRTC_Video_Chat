@@ -147,9 +147,9 @@ header p {
   aspect-ratio: 16 / 9;
   background: hsl(var(--bg-surface));
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-glass);
+  border: 1px solid hsl(var(--border-glass));
   overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
   transition: var(--transition-all);
 }
 
@@ -183,7 +183,7 @@ video {
 .video-label {
   font-size: 0.9rem;
   font-weight: 600;
-  color: hsl(var(--text-primary));
+  color: hsl(var(--text-secondary));
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
@@ -233,20 +233,18 @@ video {
   font-weight: 600;
   cursor: pointer;
   letter-spacing: -0.01em;
-  box-shadow: 0 8px 32px hsla(var(--primary) / 0.45),
-    0 0 0 1px hsla(var(--primary) / 0.15);
+  box-shadow: 0 0 20px hsla(var(--primary) / 0.45);
   transition: var(--transition-all);
 }
 
 .camera-enable-btn:hover {
   background: hsl(var(--primary-hover));
-  box-shadow: 0 12px 40px hsla(var(--primary) / 0.6),
-    0 0 0 1px hsla(var(--primary) / 0.25);
-  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 0 30px hsla(var(--primary) / 0.6);
+  transform: scale(1.05);
 }
 
 .camera-enable-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.95);
 }
 
 .camera-enable-btn:disabled {
@@ -261,7 +259,7 @@ video {
 input {
   flex: 1;
   background-color: rgba(3, 7, 18, 0.5);
-  border: 1px solid var(--border-glass);
+  border: 1px solid hsl(var(--border-glass));
   color: hsl(var(--text-primary));
   padding: 0.8rem 1rem;
   border-radius: var(--radius-md);
@@ -283,8 +281,8 @@ input::placeholder {
 }
 
 input:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  opacity: 0.8;
+  cursor: text;
 }
 
 /* ============================================================
@@ -320,18 +318,18 @@ input:disabled {
 .btn-primary {
   background-color: hsl(var(--primary));
   color: white;
-  box-shadow: 0 4px 14px hsl(var(--primary-glow));
+  box-shadow: 0 0 14px hsl(var(--primary-glow));
 }
 
 .btn-primary:hover:not(:disabled) {
   background-color: hsl(var(--primary-hover));
-  box-shadow: 0 6px 20px hsla(var(--primary) / 0.5);
+  box-shadow: 0 0 20px hsla(var(--primary) / 0.5);
 }
 
 .btn-secondary {
   background-color: hsl(var(--bg-surface));
   color: hsl(var(--text-primary));
-  border: 1px solid var(--border-glass);
+  border: 1px solid hsl(var(--border-glass));
 }
 
 .btn-secondary:hover:not(:disabled) {
@@ -342,12 +340,12 @@ input:disabled {
 .btn-destructive {
   background-color: hsl(var(--destructive));
   color: white;
-  box-shadow: 0 4px 14px hsl(var(--destructive-glow));
+  box-shadow: 0 0 14px hsl(var(--destructive-glow));
 }
 
 .btn-destructive:hover:not(:disabled) {
   background-color: hsl(0, 72%, 60%);
-  box-shadow: 0 6px 20px hsla(var(--destructive) / 0.5);
+  box-shadow: 0 0 20px hsla(var(--destructive) / 0.5);
 }
 
 .btn-icon {
@@ -367,8 +365,8 @@ input:disabled {
   padding: 1rem 1.25rem;
   background: hsl(var(--bg-glass));
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-glass);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid hsl(var(--border-glass));
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
   flex-wrap: wrap;
 }
 
@@ -410,13 +408,13 @@ input:disabled {
 
 .toast {
   background: hsl(var(--bg-surface));
-  border: 1px solid var(--border-glass);
+  border: 1px solid hsl(var(--border-glass));
   border-left: 4px solid hsl(var(--primary));
   color: hsl(var(--text-primary));
   padding: 0.85rem 1.25rem;
   border-radius: var(--radius-md);
   font-size: 0.9rem;
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0px 30px rgba(0, 0, 0, 0.4);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -437,7 +435,7 @@ input:disabled {
   border: none;
   color: hsl(var(--text-secondary));
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   line-height: 1;
   transition: var(--transition-all);
 }
@@ -480,7 +478,7 @@ input:disabled {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-glass);
+  background: hsl(var(--border-glass));
   border-radius: 50px;
 }
 
@@ -521,8 +519,8 @@ input:disabled {
 
   .input-row {
     flex: 1 1 100%;
-    order: 3;
     /* wraps below the two buttons */
+    order: 3;
     min-width: 0;
   }
 

@@ -1,14 +1,19 @@
+// =============================================================================
+// Firestore signaling adapter. Handles offer/answer exchange and ICE candidate
+// relay via Cloud Firestore. All shared WebRTC logic lives in webrtc-core.js.
+// =============================================================================
+
 import {
   getFirestore,
   collection,
   doc,
+  addDoc,
   setDoc,
   getDoc,
   getDocs,
   updateDoc,
   writeBatch,
   onSnapshot,
-  addDoc
 } from "firebase/firestore";
 import { app } from "./firebase-config.js";
 import {
@@ -25,17 +30,11 @@ import {
   enterCallMode
 } from "./webrtc-core.js";
 
-// =============================================================================
-// signaling-firestore.js
-// Firestore signaling adapter. Handles offer/answer exchange and ICE candidate
-// relay via Cloud Firestore. All shared WebRTC logic lives in webrtc-core.js.
-// =============================================================================
-
 const db = getFirestore(app);
 
 // --- HELPERS ---
 
-/** Deletes offerCandidates, answerCandidates sub-collections and the call doc. */
+// Deletes offerCandidates, answerCandidates sub-collections and the call doc
 async function cleanupCallData(callId) {
   if (!callId) return;
   const callDoc = doc(db, "calls", callId);
@@ -77,12 +76,12 @@ DOM.callButton.onclick = async () => {
     const offerCandidates = collection(callDoc, "offerCandidates");
     const answerCandidates = collection(callDoc, "answerCandidates");
 
-    DOM.callInput.value = callDoc.id;
+    DOM.callInput.value = state.userID;
     updateConnectionState("connecting");
     showToast("Preparing call session...", "info");
 
     // Remove any leftover data from previous sessions
-    await cleanupCallData(callDoc.id);
+    await cleanupCallData(state.userID);
 
     setupPeerConnection();
 
@@ -110,10 +109,15 @@ DOM.callButton.onclick = async () => {
     // Listen for the remote answer
     const unsubCall = onSnapshot(callDoc, async (snapshot) => {
       const data = snapshot.data();
-      if (!state.pc.currentRemoteDescription && data?.answer) {
-        await state.pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-        await processQueuedIceCandidates();
+      if (data.answer && state.pc.signalingState === "have-local-offer") {
+        try {
+          await state.pc.setRemoteDescription(data.answer);
+          await processQueuedIceCandidates();
+        } catch (e) {
+          console.error("Error setting remote description:", e);
+        }
       }
+
       if (data?.status === "ended") {
         showToast("The peer has left the session.", "info");
         handleHangup(false);
@@ -185,8 +189,7 @@ DOM.answerButton.onclick = async () => {
     };
 
     // Apply the caller's offer and create an answer
-    await state.pc.setRemoteDescription(new RTCSessionDescription(callData.offer));
-    await processQueuedIceCandidates();
+    await state.pc.setRemoteDescription(callData.offer);
 
     const answerDescription = await state.pc.createAnswer();
     await state.pc.setLocalDescription(answerDescription);
