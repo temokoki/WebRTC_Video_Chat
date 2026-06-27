@@ -342,6 +342,11 @@ DOM.screenShareButton.onclick = async () => {
     return;
   }
 
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+    showToast("Screen sharing is not supported on this device.", "error");
+    return;
+  }
+
   try {
     // Capture the display; also capture mic audio so voice is mixed in
     const displayStream = await navigator.mediaDevices.getDisplayMedia({
